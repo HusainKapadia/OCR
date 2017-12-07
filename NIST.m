@@ -4,7 +4,7 @@ data = prnist(0:9, 1:1000);
 %TODO: Try scaling images
 %TODO: Try other filters
 
-rec101(data, 'feat_all')
+rec101(data, 'feat_direct')
 
 
 
@@ -15,7 +15,7 @@ rec101(data, 'feat_all')
 % 
 % 
 % 
-features = my_rep(data);
+%features = my_rep(data);
 % 
 % 
 % %bbox = 

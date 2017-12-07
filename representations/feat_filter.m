@@ -3,7 +3,9 @@ function a = feat_all(m)
     features = im_features(m, {"FilledArea", 
                                     "Perimeter", 
                                     "Eccentricity",
-                                    "Solidity" });
+                                    "Solidity"});
+
+   %TODO: Try measure
                                 
     %TODO: Combine in means
 

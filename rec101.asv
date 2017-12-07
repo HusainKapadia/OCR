@@ -1,34 +1,47 @@
-function performance = rec101(nist, feat_func)
+function [performance, error] = rec101(nist, feat_func, verbose)
     prwaitbar off
     
     numTests = 1;
-    numObjects = 10;
+    numObjects = 40;
+    
+    PRTIME = 10;
     
     for i = 1:numTests
         f = str2func(feat_func);
         
-        [nist_dat, test_data] = gendat(nist, 0.8);
-        print("Got training data. Size: " + size(nist_dat));
+        [nist_dat, test_data] = gendat(nist, 0.1);
+        
+    
+        disp("Got training data. Size: ");
         disp(size(nist_dat));
         
         train_data_unscaled = f(nist_dat);
+        
+         %test_data_unscaled = f(test_data);
        
-         print("Generated features");
+         disp("Generated features");
+         disp(size(train_data_unscaled));
         
         %TODO: why c-mean?
-        scaling = scalem(train_data_unscaled, 'c-mean');
-        
+        scaling = scalem(train_data_unscaled, 'variance');
+     
+        %TODO: TRy PCA on data and see if it helps
         train_data_scaled = train_data_unscaled * scaling;
+        %test_data_scaled = test_data_unscaled * scaling;
         
-         print("Scaled features");
-        
-        
-        w = bpxnc(train_data_scaled, 5);
+        disp("Scaled features");
+     
+        for j = 1:30
+        w = bpxnc(train_data_scaled, [20 20], 5000);
        
-         print("Trained classifier");
+        disp("Trained classifier");
         
         performance = nist_eval(feat_func, w, numObjects);
+        %error  = testc(test_data_scaled, w);
         
-        print("Done");
+        disp("Done");
+        
+        disp(performance);
+        %disp(error);
     end
 end
