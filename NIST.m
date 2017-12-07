@@ -1,12 +1,21 @@
-prwaitbar off
+data = prnist(0:9, 1:1000);
+
+%TODO: Try more feature representations
+%TODO: Try scaling images
+%TODO: Try other filters
+
+rec101(data, 'feat_all')
 
 
 
-data = prnist([0:9], [1:40:1000]);
+
+
+%prwaitbar off
 % show(data);
 % 
 % 
-% features = my_rep(data);
+% 
+features = my_rep(data);
 % 
 % 
 % %bbox = 
@@ -23,7 +32,7 @@ data = prnist([0:9], [1:40:1000]);
 
 
 %for i = 1:100
-    untrainedNet =  bpxnc([], 40);
-    eval = nist_eval('my_rep', untrainedNet)
-    testc(my_rep(data), eval.data(1))
+%     untrainedNet =  bpxnc([], [10 10]);
+%     eval = nist_eval('my_rep', untrainedNet, 100);
+%     testc(my_rep(data), eval.data(1))
 %end

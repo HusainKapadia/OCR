@@ -1,4 +1,4 @@
-function a = my_rep(m)
+function a = feat_all(m)
     %feature extraction
     features = im_features(m, {"FilledArea", 
                                     "Perimeter", 
@@ -6,6 +6,7 @@ function a = my_rep(m)
                                     "Solidity" });
                                 
     %TODO: Combine in means
+
     %means = im_mean(data);
     a = features;
 end

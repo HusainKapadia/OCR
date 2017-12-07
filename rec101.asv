@@ -1,0 +1,34 @@
+function performance = rec101(nist, feat_func)
+    prwaitbar off
+    
+    numTests = 1;
+    numObjects = 10;
+    
+    for i = 1:numTests
+        f = str2func(feat_func);
+        
+        [nist_dat, test_data] = gendat(nist, 0.8);
+        print("Got training data. Size: " + size(nist_dat));
+        disp(size(nist_dat));
+        
+        train_data_unscaled = f(nist_dat);
+       
+         print("Generated features");
+        
+        %TODO: why c-mean?
+        scaling = scalem(train_data_unscaled, 'c-mean');
+        
+        train_data_scaled = train_data_unscaled * scaling;
+        
+         print("Scaled features");
+        
+        
+        w = bpxnc(train_data_scaled, 5);
+       
+         print("Trained classifier");
+        
+        performance = nist_eval(feat_func, w, numObjects);
+        
+        print("Done");
+    end
+end
