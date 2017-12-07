@@ -34,7 +34,7 @@ function [performance, error] = rec101(nist, feat_func)
          disp("Trained classifier");
         
         performance = nist_eval(feat_func, w, numObjects);
-        error  = test_data*w*testc([], 'crisp');
+        error  = testc(test_data, w);
         disp("Done");
     end
 end
