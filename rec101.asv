@@ -15,13 +15,15 @@ function performance = rec101(nist, feat_func, dataFraction, testObjects, verbos
         end
         
         train_data = f(nist_dat);       
-        scaling = scalem(train_data, 'c-variance');
-        train_data = train_data * scaling;
+        scaling = scalem(train_data_unscaled, 'c-variance');
         
-        [pca_map, frac] = pcam(train_data, 30);
+        
+        [pca_map, frac] = pcam(train_data_unscaled * scaling, 30);
 
         % Return the dataset after performing PCA
-        train_data = train_data * pca_map;
+        data_proc = pca_map * scaling;
+        
+        train_data = train_data_unscaled * data_proc;
         
         if verbose
             disp("Generated features");
@@ -36,7 +38,7 @@ function performance = rec101(nist, feat_func, dataFraction, testObjects, verbos
             disp("Trained classifier");
         end
 
-        performance = nist_eval(feat_func, scaling * pca_map * w, testObjects);
+        performance = nist_eval(feat_func, w * data_proc, testObjects);
 
         if verbose
             disp("Done");

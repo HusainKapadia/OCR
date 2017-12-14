@@ -4,9 +4,7 @@ data = prnist(0:9, 1:1000);
 %TODO: Try scaling images
 %TODO: Try other filters
 
-rec101(data, 'feat_direct', true)
-
-
+rec101(data, 'feat_direct', 0.5, 50, true)
 
 
 
@@ -20,6 +18,7 @@ rec101(data, 'feat_direct', true)
 % 
 % 
 % %bbox = 
+
 % 
 % %normalize
 % %normalized = ...; 
