@@ -1,4 +1,4 @@
-function performance = rec101(nist, feat_func, dataFraction, testObjects, verbose)
+function performance = rec101(nist, classifier, feat_func, dataFraction, testObjects, verbose)
     prwaitbar off
     
     numTests = 1;
@@ -28,10 +28,8 @@ function performance = rec101(nist, feat_func, dataFraction, testObjects, verbos
             disp(size(train_data));
         end
 
-        w = bpxnc(train_data, [20 10 5], 15000);
-        %w = svc(train_data_scaled, proxm('p',3));
-
-
+        w = train_data * classifier;
+        
         if verbose
             disp("Trained classifier");
         end

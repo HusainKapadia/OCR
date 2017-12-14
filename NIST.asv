@@ -4,20 +4,11 @@ data = prnist(0:9, 1:1000);
 %TODO: Try scaling images
 %TODO: Try other filters
 
-%TODO: Make a learning curve
 
+        w =
 
-test_objects = 100;
-data_frac = 0.1;
+rec101(data,  bpxnc(train_data, [20 10 5], 15000), 'feat_direct', 0.5, 50, true)
 
-nn_perf = rec101(data, bpxnc([], [20 10 5], 15000), 'feat_direct', data_frac, test_objects, true)
-svc_perf = rec101(data, svc([], proxm('p',3)), 'feat_direct', data_frac, test_objects, true)
-
-disp("Neural network performance: ")
-disp(nn_perf);
-
-disp("Support vector machine performance: ");
-disp(svc_perf);
 
 
 
