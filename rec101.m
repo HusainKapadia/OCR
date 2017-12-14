@@ -1,4 +1,4 @@
-function performance = rec101(nist, classifier, feat_func, dataFraction, testObjects, verbose)
+function performance = rec101(nist, classifier, feat_func, dataFraction, testObjects)
     prwaitbar off
     
     numTests = 1;
@@ -9,10 +9,8 @@ function performance = rec101(nist, classifier, feat_func, dataFraction, testObj
     
     %todo: How to vary
     for i = 1:numTests
-        if verbose
-            disp("Got training data. Size: ");
-            disp(size(nist_dat));
-        end
+        disp("Got training data. Size: ");
+        disp(size(nist_dat));
         
         train_data = f(nist_dat);       
         scaling = scalem(train_data, 'c-variance');
@@ -23,23 +21,16 @@ function performance = rec101(nist, classifier, feat_func, dataFraction, testObj
         % Return the dataset after performing PCA
         train_data = train_data * pca_map;
         
-        if verbose
-            disp("Generated features");
-            disp(size(train_data));
-        end
-
+        disp("Generated features");
+        disp(size(train_data));
+      
         w = train_data * classifier;
-        
-        if verbose
-            disp("Trained classifier");
-        end
-
+       
+        disp("Trained classifier");
+   
         performance = nist_eval(feat_func, scaling * pca_map * w, testObjects);
 
-        if verbose
-            disp("Done");
-        end
-
+        disp("Done");
         disp(performance);
     end
 end
