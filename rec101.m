@@ -1,49 +1,62 @@
-function [performance, error] = rec101(nist, feat_func, verbose)
+function performance = rec101(nist, feat_func, verbose)
     prwaitbar off
     
     numTests = 1;
     numObjects = 100;
     
-    prtime(60);
+    prtime(600);
     
     for i = 1:numTests
         f = str2func(feat_func);
 
-        [nist_dat, test_data] = gendat(nist, 0.4);
+        [nist_dat, test_data] = gendat(nist, 0.2);
         
-
-        disp("Got training data. Size: ");
-        disp(size(nist_dat));
+        if verbose
+            disp("Got training data. Size: ");
+            disp(size(nist_dat));
+        end
         
         train_data_unscaled = f(nist_dat);
-
         
          %test_data_unscaled = f(test_data);
        
-         disp("Generated features");
-         disp(size(train_data_unscaled));
+        if verbose
+            disp("Generated features");
+            disp(size(train_data_unscaled));
+        end
         
-        %TODO: why c-mean?
         scaling = scalem(train_data_unscaled, 'c-variance');
-     
-
-        %test_data_scaled = test_data_unscaled * scaling;
+        train_data_scaled = train_data_unscaled * scaling;
         
         disp("Scaled features");
-     
-        for j = 5:30
-            w = bpxnc(train_data_scaled, [60 30 15], 5000);
+        
+
+        
+       % for j = 10:10:100
+            
+             % Perform PCA
+            [pca_map, frac] = pcam(train_data_scaled, 40);
+            % Return the dataset after performing PCA
+            train_pca = train_data_scaled*pca_map;
+
+            disp("Done PCA");
+            disp(size(train_pca));
+            
+            w = bpxnc(train_pca, [20 10 5], 5000);
             %w = svc(train_data_scaled, proxm('p',3));
             
             
             disp("Trained classifier");
+            
+            w_pca = scaling*pca_map*w;
 
-            performance = nist_eval(feat_func, w, numObjects);
-            %error  = testc(test_data_scaled, w);
-
-            disp("Done");
-
+            performance = nist_eval(feat_func, w_pca, numObjects);
+            
+            if verbose
+                disp("Done");
+            end
+            
             disp(performance);
-        end
+        %end
     end
 end
