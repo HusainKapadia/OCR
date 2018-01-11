@@ -89,8 +89,8 @@ function e = clevald(a,classf,learnsizes,repsize,nreps,t,testfun)
 		end
 	else
 		if islabtype(a,'crisp') & isempty(a,'prior')
-			prwarning(1,['No priors found in dataset, class frequencies are used.' ...
-			newline '            Training set sizes hold for entire dataset']);
+			%prwarning(1,['No priors found in dataset, class frequencies are used.' ...
+			%newline '            Training set sizes hold for entire dataset']);
 		end
 		classs = false;
 		toolarge = find(learnsizes >= m);

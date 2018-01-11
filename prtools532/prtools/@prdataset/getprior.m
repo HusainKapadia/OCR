@@ -46,7 +46,7 @@ function [prior,lablist] = getprior(a,warning)
 					st = dbstack;
 					n = min(length(st),2);
 					[cc,command] = fileparts(st(n).name);
-					prwarning(1,[command ': No priors found in dataset, class frequencies are used instead'])
+					%prwarning(1,[command ': No priors found in dataset, class frequencies are used instead'])
 				end
 			case 'soft'
 				prior = mean(gettargets(a));
@@ -55,7 +55,7 @@ function [prior,lablist] = getprior(a,warning)
 					st = dbstack;
 					n = min(length(st),2);
 					[cc,command] = fileparts(st(n).name);
-					prwarning(1,[command ': No priors found in dataset, class frequencies are used instead'])
+					%prwarning(1,[command ': No priors found in dataset, class frequencies are used instead'])
 				end
 			case 'targets'
 				prwarning(3,'No class priors defined for a dataset with the label type ''TARGETS''.')

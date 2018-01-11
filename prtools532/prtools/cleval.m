@@ -93,8 +93,8 @@ function e = cleval(a,classf,learnsizes,nreps,t,testfun)
 		end
 	else
 		if islabtype(a,'crisp') && isempty(a,'prior')
-			prwarning(1,['No priors found in dataset, class frequencies are used. ' ....
-                   'Training set sizes hold for entire dataset']);
+			%prwarning(1,['No priors found in dataset, class frequencies are used. ' ....
+                   %'Training set sizes hold for entire dataset']);
     end
     if defaulttest
       testfun = testd;
