@@ -58,11 +58,11 @@ for i = 1:test_count
     feat_rep = 'feat_direct';
     train_data = getProcessedData(data, feat_rep, data_frac);
     
-    linear_perf(i) = rec101(train_data, classifiers(1), feat_rep);
-    knnc_perf(i) = rec101(train_data, classifiers(2), feat_rep);
-    tree_perf(i) = rec101(train_data, classifiers(3), feat_rep);
-    nn_perf(i) = rec101(train_data, classifiers(4), feat_rep);
-    svc_perf(i) = rec101(train_data, classifiers(5), feat_rep);
+    linear_perf(i) = rec101(train_data, classifiers{1}, feat_rep);
+    knnc_perf(i) = rec101(train_data, classifiers{2}, feat_rep);
+    tree_perf(i) = rec101(train_data, classifiers{3}, feat_rep);
+    nn_perf(i) = rec101(train_data, classifiers{4}, feat_rep);
+    svc_perf(i) = rec101(train_data, classifiers{5}, feat_rep);
     
     disp(["Neural network performance: ", nn_perf(i)]);
     disp(["Support vector machine performance: ", svc_perf(i)]);
