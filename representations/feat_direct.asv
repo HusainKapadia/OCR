@@ -1,0 +1,9 @@
+function a = feat_direct(m)
+   % Preprocess the digits
+    ims = size(m);
+    scaleFac = min(ims(1) / 8, ims(1) / 10);
+   
+    preproc = im_resize([], scaleFac * ims, 'lanczos2') * im_resize([],;
+    a = m * preproc;
+    a = prdataset(a, getlabels(m)); 
+end
