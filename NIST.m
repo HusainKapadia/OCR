@@ -6,7 +6,7 @@ data = prnist(0:9, 1:1000);
 classifiers = { perlc([]);
                 knnc([], 5); 
                 treec([]);
-                bpxnc([], [50], 50000);
+                bpxnc([], [60], 50000);
                 svc([], proxm('p',3))
                };
 
@@ -18,7 +18,7 @@ if 1
 
     inc = 10;
     
-    for pcaDim = 15:25
+    for pcaDim = 10:1:30
         train_struct = getProcessedData(data, feat_rep, data_frac, pcaDim);
         error1 = rec101(train_struct, classifiers{4}, feat_rep);
         pcaErrorValues1 = [pcaErrorValues1 error1];
