@@ -1,4 +1,4 @@
-function a = feat_all(m)
+function a = feat_filter(m)
     %feature extraction
     features = im_features(m, {"FilledArea", 
                                     "Perimeter", 
