@@ -125,7 +125,7 @@ test_count = 10;
 %for i = 1:test_count
     data_frac = 2 / test_count;
     feat_rep = 'feat_direct';
-    train_data = getProcessedData(data, feat_rep, data_frac);
+    train_data = getProcessedData(data, feat_rep, data_frac, 30);
     
 %     linear_perf = rec101(train_data, classifiers{1}, feat_rep);
 %     knnc_perf = rec101(train_data, classifiers{2}, feat_rep);
