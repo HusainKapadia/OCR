@@ -3,6 +3,10 @@ prtime(600);
     
 data = prnist(0:9, 1:1000);
 
+
+data = handwrittenPrnist(0:9, 1:2);
+
+
 classifiers = { perlc([]);
                 knnc([], 5); 
                 treec([]);
