@@ -7,8 +7,9 @@ function performance = rec101(train_struct, classifier, feat_func, testHandwrite
         performance = nist_eval(feat_func, scaledW, 100);
     else    
         
-        w = train_struct.data * classifier;  
-        performance = testc(train_struct_handwritten.data, w);
+        disp(size(train
+        es = cleval(train_struct.data, classifier, [size(train_struct.data, 1)], 1, train_struct_handwritten.data);
+        performance = es.error(1);
     end
     
     fprintf("Classifier performance is %f \n", performance);

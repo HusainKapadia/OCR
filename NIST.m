@@ -4,8 +4,11 @@ prtime(600);
 data = prnist(0:9, 1:1000);
 
 
-data = handwrittenPrnist(0:9, 1:2);
+handwriteData = handwrittenPrnist();
 
+%show(data(1:30:10000));
+%figure;
+%show(handwriteData(1:300));
 
 classifiers = { perlc([]);
                 knnc([], 5); 
@@ -20,103 +23,96 @@ classifiers = { perlc([]);
                 nmc;
                };
 
-if 1
-    pcaErrorValues1 = [];
-    data_frac = 0.01;
-    
-    feat_rep = 'feat_direct';
+pcaErrorValues1 = [];
+data_frac = 0.1;
+feat_rep = 'feat_direct';
 
-    inc = 10;
-    
-    for pcaDim = 10:1:30
-        train_struct = getProcessedData(data, feat_rep, data_frac, pcaDim);
-        error1 = rec101(train_struct, classifiers{4}, feat_rep);
-        pcaErrorValues1 = [pcaErrorValues1 error1];
-    end
+for pcaDim = 20:30
+    train_struct = getProcessedData(data, feat_rep, data_frac, pcaDim);
+    train_struct_handwritten = getProcessedData(handwriteData, feat_rep, 0.99999, pcaDim);
 
-    plot(pcaErrorValues1);
+    error1 = rec101(train_struct, classifiers{4}, feat_rep, 1, train_struct_handwritten);
+    pcaErrorValues1 = [pcaErrorValues1 error1];
 end
 
+plot(pcaErrorValues1);
+
+%%
 % gest best NN dimension
-if 0
-    pcaErrorValues1 = [];
-    pcaErrorValues2 = [];
-    pcaErrorValues3 = [];
-    pcaErrorValues4 = [];
-    
-    data_frac = 0.01;
-    
-    feat_rep = 'feat_direct';
-    train_struct = getProcessedData(data, feat_rep, data_frac, 32);
-        
-    inc = 10;
-    
-    for pcaDim = 10:5:120
-        mult = pcaDim / 40;
-        
-        %cl1 = bpxnc([], round([20 10 20] * mult), 25000);
-        cl2 = bpxnc([], round([20] * mult), 25000);
-        %cl3 = bpxnc([], round([10 20 10] * mult), 25000);
-        cl4 = bpxnc([], round([20 20] * mult), 25000);
-        
-        %error1 = rec101(train_struct, cl1, feat_rep);
-        error2 = rec101(train_struct, cl2, feat_rep);
-        %error3 = rec101(train_struct, cl3, feat_rep);
-        error4 = rec101(train_struct, cl4, feat_rep);
-        
-        %pcaErrorValues1 = [pcaErrorValues1 error1];
-        pcaErrorValues2 = [pcaErrorValues2 error2];
-        %pcaErrorValues3 = [pcaErrorValues3 error3];
-        pcaErrorValues4 = [pcaErrorValues4 error4];
+pcaErrorValues1 = [];
+pcaErrorValues2 = [];
+pcaErrorValues3 = [];
+pcaErrorValues4 = [];
 
-    end
+data_frac = 0.01;
 
-    plot(pcaErrorValues1, 'Displayname', '1');
-    hold on;
-    
-    plot(pcaErrorValues2, 'Displayname', '2');
-    hold on;
-    
-    plot(pcaErrorValues3, 'Displayname', '3');
-    hold on;
-    
-    plot(pcaErrorValues4, 'Displayname', '4');
-    legend('show');
-    
+feat_rep = 'feat_direct';
+train_struct = getProcessedData(data, feat_rep, data_frac, 32);
+
+inc = 10;
+
+for pcaDim = 10:5:120
+    mult = pcaDim / 40;
+
+    %cl1 = bpxnc([], round([20 10 20] * mult), 25000);
+    cl2 = bpxnc([], round([20] * mult), 25000);
+    %cl3 = bpxnc([], round([10 20 10] * mult), 25000);
+    cl4 = bpxnc([], round([20 20] * mult), 25000);
+
+    %error1 = rec101(train_struct, cl1, feat_rep);
+    error2 = rec101(train_struct, cl2, feat_rep);
+    %error3 = rec101(train_struct, cl3, feat_rep);
+    error4 = rec101(train_struct, cl4, feat_rep);
+
+    %pcaErrorValues1 = [pcaErrorValues1 error1];
+    pcaErrorValues2 = [pcaErrorValues2 error2];
+    %pcaErrorValues3 = [pcaErrorValues3 error3];
+    pcaErrorValues4 = [pcaErrorValues4 error4];
+
 end
 
-%scenario 1 & 2 full run.
-if 0
-    results = zeros(2, 3, 5);
+plot(pcaErrorValues1, 'Displayname', '1');
+hold on;
 
-    for scenario = 1:2
+plot(pcaErrorValues2, 'Displayname', '2');
+hold on;
 
-        if scenario == 1
-            data_frac = 0.2;
-        else
-            data_frac = 0.01;
-        end
+plot(pcaErrorValues3, 'Displayname', '3');
+hold on;
 
-        for rep = 1:3
-            switch rep
-                case 1 
-                    feat_rep = 'feat_direct';
-                case 2 
-                    feat_rep = 'feat_filter';
-                case 3 
-                    feat_rep = 'feat_all'; 
-            end
+plot(pcaErrorValues4, 'Displayname', '4');
+legend('show');
+  
+%%
+results = zeros(2, 3, 5);
 
-            train_struct = getProcessedData(data, feat_rep, data_frac, 20);
+for scenario = 1:2
 
-            for cl = 1:5
-                results(scenario, rep, cl) = rec101(train_struct, classifiers{cl}, feat_rep); 
-            end
-        end
+    if scenario == 1
+        data_frac = 0.2;
+    else
+        data_frac = 0.01;
     end
 
-    disp(results);
+    for rep = 1:3
+        switch rep
+            case 1 
+                feat_rep = 'feat_direct';
+            case 2 
+                feat_rep = 'feat_filter';
+            case 3 
+                feat_rep = 'feat_all'; 
+        end
+
+        train_struct = getProcessedData(data, feat_rep, data_frac, 20);
+
+        for cl = 1:5
+            results(scenario, rep, cl) = rec101(train_struct, classifiers{cl}, feat_rep); 
+        end
+    end
 end
+
+disp(results);
  
 test_count = 10;
  
