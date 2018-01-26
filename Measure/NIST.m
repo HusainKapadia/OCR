@@ -25,10 +25,11 @@ classifiers = { perlc([]);
                 Cmin;
                };
            
-global_data_frac_mult = 0.05;
+global_data_frac_mult = 0.01;
 
  
 %%
+%TODO: Auto PCA dim
 %PCA values
 pcaErrorValues = [];
 pcaErrorValuesVar = [];
@@ -56,6 +57,9 @@ errorbar(pcaErrorValues, pcaErrorValuesVar);
 
 %%
 %Neural net stuff
+%TODO: NN can get stuck, and produce a classifier with error >0.9. Do we
+%discard those?
+%TODO: Auto plug best neural network
 % gest best NN dimension
 nnError1 = [];
 nnError2 = [];
@@ -66,7 +70,7 @@ train_struct = getProcessedData(data, 'feat_direct', 0.25 * global_data_frac_mul
 
 
 sizes = 20;
-trials = 7;
+trials = 5;
 nnErrors = zeros(sizes, 4, 5);
 
 for nnSize = 1:sizes
@@ -102,6 +106,8 @@ for nnSize = 1:sizes
 end
 
 %%
+%TODO: Legend
+
 errorbar(errorMean(1, :), errorDev(1, :));
 hold on;
 
@@ -126,13 +132,17 @@ hold on;
 
 %plot(nnError4, 'Displayname', '4');
 %legend('show');
-  
+
+%%
+%Measure cost curves for some interesting scenario.
+
+
 %%
 %total results
-results = zeros(2, 3, 5);
+results = zeros(2, 3, length(classifiers));
+resultsHandwritten = zeros(2, 3, length(classifiers));
 
 for scenario = 1:2
-
     if scenario == 1
         data_frac = 0.2;
     else
@@ -149,20 +159,18 @@ for scenario = 1:2
                 feat_rep = 'feat_all'; 
         end
 
-        train_struct = getProcessedData(data, feat_rep, data_frac, 20);
+        train_struct = getProcessedData(data, feat_rep, data_frac, 24);
+        train_struct_handwritten = getProcessedData(handwriteData, feat_rep, 0.99999, 24);
 
+        %TODO: We need to run this a few times to get an average. 
+        
         for cl = 1:length(classifiers)
-            results(scenario, rep, cl) = rec101(train_struct, classifiers{cl}, feat_rep); 
+            
+            
+            [results(scenario, rep, cl), resultsHandwritten(scenario, rep, cl)] = rec101(train_struct, classifiers{cl}, feat_rep, 1, train_struct_handwritten); 
         end
     end
 end
 
-disp(results);
-
-%%
-%Live test
-
-
-    %train_struct_handwritten = getProcessedData(handwriteData, feat_rep, 0.99999, pcaDim);
 
 
