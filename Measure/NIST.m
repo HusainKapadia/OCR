@@ -74,13 +74,13 @@ trials = 5;
 nnErrors = zeros(sizes, 4, 5);
 
 for nnSize = 1:sizes
-    mult = nnSize / sizes * 3.75 + 0.25;
+    mult = nnSize / (sizes - 1) * 3.75 + 0.25;
 
     nets = [
-            bpxnc([], round([20 10 20] * mult), 15000);
-            bpxnc([], round([20] * mult), 15000);
-            bpxnc([], round([10 20 10] * mult), 15000);
-            bpxnc([], round([20 20] * mult), 15000)
+            bpxnc([], round([10 5 10] * mult), 15000);
+            bpxnc([], round([10] * mult), 15000);
+            bpxnc([], round([5 10 5] * mult), 15000);
+            bpxnc([], round([10 10] * mult), 15000)
             
             ];
     
@@ -96,32 +96,28 @@ errorMean = zeros(4, sizes);
 errorDev = zeros(4, sizes);
 
 for nnSize = 1:sizes
-    mult = nnSize / sizes * 3.75 + 0.25;
-
-
     for i=1:4
         errorMean(i, nnSize) = mean(nnErrors(nnSize, i, :));
         errorDev(i, nnSize) = std(nnErrors(nnSize, i, :));
     end
 end
 
-%%
-%TODO: Legend
 
-errorbar(errorMean(1, :), errorDev(1, :));
+errorbar(errorMean(1, :), errorDev(1, :), 'Displayname', '10-5-10');
 hold on;
 
-errorbar(errorMean(2, :), errorDev(2, :));
+errorbar(errorMean(2, :), errorDev(2, :), 'Displayname', '10');
 hold on;
 
-errorbar(errorMean(3, :), errorDev(3, :));
+errorbar(errorMean(3, :), errorDev(3, :), 'Displayname', '5-10-5');
 hold on;
 
-errorbar(errorMean(4, :), errorDev(4, :));
+errorbar(errorMean(4, :), errorDev(4, :), 'Displayname', '10 10');
 hold on;
 
+legend('show');
 
-%plot(nnError1, 'Displayname', '1');
+%plot(nnError1, );
 %hold on;
 
 %plot(nnError2, 'Displayname', '2');
@@ -131,7 +127,7 @@ hold on;
 %hold on;
 
 %plot(nnError4, 'Displayname', '4');
-%legend('show');
+
 
 %%
 %Measure cost curves for some interesting scenario.
