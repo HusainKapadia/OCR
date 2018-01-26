@@ -6,14 +6,12 @@ data = prnist(0:9, 1:1000);
 handwriteData = handwrittenPrnist();
 
 %add scaled classifiers to classifiers list
-w = [bpxnc([], [40 30], 15000) *classc svc([], proxm('p',3)) *classc ];
-Cmax = w*maxc;            % max combiner
-Cmin = w*minc;            % min combiner
+w = [bpxnc([], [30], 15000) *classc svc([], proxm('p',3)) *classc ];
+Cmean = w*meanc;            % max combiner
+Cprod = w*prodc;            % min combiner
 
-classifiers = { perlc([]);
-                knnc([], 5); 
+classifiers = { bpxnc([], [30], 15000);
                 treec([]);
-                bpxnc([], [30], 15000);
                 svc([], proxm('p',3));
                 parzenc([], 5);
                 fisherc;
@@ -22,13 +20,14 @@ classifiers = { perlc([]);
                 qdc([],.5,.5);
                 nmc;
                 Cmax;
-                Cmin;
+                Cprod;
                };
-           
-global_data_frac_mult = 0.05;
+
+global_data_frac_mult = 0.5;
 
  
 %%
+%TODO: Auto PCA dim
 %PCA values
 pcaErrorValues = [];
 pcaErrorValuesVar = [];
@@ -56,27 +55,30 @@ errorbar(pcaErrorValues, pcaErrorValuesVar);
 
 %%
 %Neural net stuff
+%TODO: NN can get stuck, and produce a classifier with error >0.9. Do we
+%discard those?
+%TODO: Auto plug best neural network
 % gest best NN dimension
 nnError1 = [];
 nnError2 = [];
 nnError3 = [];
 nnError4 = [];
 
-train_struct = getProcessedData(data, 'feat_direct', 0.25 * global_data_frac_mult, 24);
+train_struct = getProcessedData(data, 'feat_direct', 0.25 * global_data_frac_mult, 22);
 
 
 sizes = 20;
-trials = 7;
+trials = 5;
 nnErrors = zeros(sizes, 4, 5);
 
 for nnSize = 1:sizes
-    mult = nnSize / sizes * 3.75 + 0.25;
+    mult = nnSize / (sizes - 1) * 3.75 + 0.25;
 
     nets = [
-            bpxnc([], round([20 10 20] * mult), 15000);
-            bpxnc([], round([20] * mult), 15000);
-            bpxnc([], round([10 20 10] * mult), 15000);
-            bpxnc([], round([20 20] * mult), 15000)
+            bpxnc([], round([10 5 10] * mult), 15000);
+            bpxnc([], round([10] * mult), 15000);
+            bpxnc([], round([5 10 5] * mult), 15000);
+            bpxnc([], round([10 10] * mult), 15000)
             
             ];
     
@@ -92,30 +94,28 @@ errorMean = zeros(4, sizes);
 errorDev = zeros(4, sizes);
 
 for nnSize = 1:sizes
-    mult = nnSize / sizes * 3.75 + 0.25;
-
-
     for i=1:4
         errorMean(i, nnSize) = mean(nnErrors(nnSize, i, :));
         errorDev(i, nnSize) = std(nnErrors(nnSize, i, :));
     end
 end
 
-%%
-errorbar(errorMean(1, :), errorDev(1, :));
+
+errorbar(errorMean(1, :), errorDev(1, :), 'Displayname', '10-5-10');
 hold on;
 
-errorbar(errorMean(2, :), errorDev(2, :));
+errorbar(errorMean(2, :), errorDev(2, :), 'Displayname', '10');
 hold on;
 
-errorbar(errorMean(3, :), errorDev(3, :));
+errorbar(errorMean(3, :), errorDev(3, :), 'Displayname', '5-10-5');
 hold on;
 
-errorbar(errorMean(4, :), errorDev(4, :));
+errorbar(errorMean(4, :), errorDev(4, :), 'Displayname', '10 10');
 hold on;
 
+legend('show');
 
-%plot(nnError1, 'Displayname', '1');
+%plot(nnError1, );
 %hold on;
 
 %plot(nnError2, 'Displayname', '2');
@@ -125,18 +125,83 @@ hold on;
 %hold on;
 
 %plot(nnError4, 'Displayname', '4');
-%legend('show');
-  
+
+
+%%
+%Measure cost curves for some interesting scenario.
+prwaitbar off    
+prtime(600);
+    
+data = prnist(0:9, 1:1000);
+handwriteData = handwrittenPrnist();
+
+%add scaled classifiers to classifiers list
+w = [bpxnc([], [40 30], 15000) *classc svc([], proxm('p',3)) *classc ];
+Cmax = w*maxc;            % max combiner
+Cmin = w*minc;            % min combiner
+Cmean = w*meanc;          % mean combiner
+
+classifiers = { treec([]);
+                bpxnc([], [40 30], 15000);
+                svc([], proxm('p',3));
+                parzenc([], 5);
+                fisherc;
+                loglc;
+                ldc([],.5,.5);
+                qdc([],.5,.5);
+                nmc;
+                Cmax;
+                Cmin;
+                Cmean;
+               };
+
+labels = {'Decision Tree', 'Neural Network', 'SVM', 'Parzen', 'Fisher', 'Logistic classifier', 'LDC', 'QDC', 'NMC', 'Stacked max combination', 'Stacked min combination', 'Stacked mean combination'};
+
+iter = 4;
+frac = [0.01, 0.02, 0.04, 0.05, 0.08, 0.1, 0.2];
+err = zeros(length(frac), size(classifiers,1));
+err_var = zeros(length(frac), size(classifiers,1));
+
+for j = 1:length(frac)
+    train_struct = getProcessedData(data, 'feat_direct', frac(j) * global_data_frac_mult, 24);    
+    
+    for k = 1:size(classifiers,1)
+        disp(labels(k));
+        errorList = [];
+        
+        for i = 1:iter
+            errorList = [errorList rec101(train_struct, classifiers{k}, 'feat_direct', 0, [])];
+        end
+        
+        err(j,k) = mean(errorList);
+        err_var(j,k) = sqrt(var(errorList));    
+    end
+end
+
+figure();
+for k = 1:11
+    errorbar(err(:,k), err_var(:,k), 'DisplayName', labels(k))
+    hold on;
+end
+
+figure();
+for k = 11:14
+    errorbar(err(:,k), err_var(:,k), 'DisplayName', labels(k))
+    hold on;
+end
+
+legend('show')
+
 %%
 %total results
-results = zeros(2, 3, 5);
+results = zeros(2, 3, length(classifiers));
+resultsHandwritten = zeros(2, 3, length(classifiers));
 
 for scenario = 1:2
-
     if scenario == 1
-        data_frac = 0.2;
+        data_frac = 0.3;
     else
-        data_frac = 0.01;
+        data_frac = 0.01 / global_data_frac_mult;
     end
 
     for rep = 1:3
@@ -144,54 +209,17 @@ for scenario = 1:2
             case 1 
                 feat_rep = 'feat_direct';
             case 2 
-                feat_rep = 'feat_filter';
+                feat_rep = 'feat_all';
             case 3 
-                feat_rep = 'feat_all'; 
+                feat_rep = 'f'; 
         end
 
-        train_struct = getProcessedData(data, feat_rep, data_frac, 20);
-
+        train_struct = getProcessedData(data, feat_rep, data_frac * global_data_frac_mult, 22);
+   
+        %TODO: We need to run this a few times to get an average. 
+        
         for cl = 1:length(classifiers)
-            results(scenario, rep, cl) = rec101(train_struct, classifiers{cl}, feat_rep, 0, []); 
+            [results(scenario, rep, cl), resultsHandwritten(scenario, rep, cl)] = rec101(train_struct, classifiers{cl}, feat_rep, 1, handwriteData); 
         end
     end
 end
-
-%%
-%make table out of results
-
-%%
-%Live test
-train_struct_handwritten = getProcessedData(handwriteData, feat_rep, 0.99999, pcaDim);
-
-resultsHandwritten = zeros(2, 3, 5);
-
-for scenario = 1:2
-
-    if scenario == 1
-        data_frac = 0.2;
-    else
-        data_frac = 0.01;
-    end
-
-    for rep = 1:3
-        switch rep
-            case 1 
-                feat_rep = 'feat_direct';
-            case 2 
-                feat_rep = 'feat_filter';
-            case 3 
-                feat_rep = 'feat_all'; 
-        end
-
-        train_struct = getProcessedData(data, feat_rep, data_frac, 20);
-
-        for cl = 1:length(classifiers)
-            resultsHandwritten(scenario, rep, cl) = rec101(train_struct, classifiers{cl}, feat_rep, 0, []); 
-        end
-    end
-end
-
-disp(results);
-
-

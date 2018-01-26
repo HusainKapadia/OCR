@@ -5,11 +5,11 @@ prtime(600);
 data = prnist(0:9, 1:1000);
 handwriteData = handwrittenPrnist();
 
-
 %add scaled classifiers to classifiers list
 w = [bpxnc([], [30], 15000) *classc svc([], proxm('p',3)) *classc ];
-Cmean = w*meanc;            % max combiner
-Cprod = w*prodc;            % min combiner
+Cmax = w*maxc;            % max combiner
+Cmin = w*minc;            % min combiner
+Cmean = w*meanc;          % mean combiner
 
 classifiers = { bpxnc([], [30], 15000);
                 treec([]);
@@ -21,10 +21,11 @@ classifiers = { bpxnc([], [30], 15000);
                 qdc([],.5,.5);
                 nmc;
                 Cmax;
-                Cprod;
+                Cmin;
+                Cmean
                };
 
-global_data_frac_mult = 0.5;
+global_data_frac_mult = 0.05;
 
  
 %%
@@ -34,18 +35,18 @@ pcaErrorValues = [];
 pcaErrorValuesVar = [];
 feat_rep = 'feat_direct';
 
-for nn = 1:2:50
-    train_struct = getProcessedData(data, feat_rep, 0.25 * global_data_frac_mult, nn);
-
+for i = 1:2:50
     errorList = [];
+    
     for i=1:4
+        train_struct = getProcessedData(data, feat_rep, 0.25 * global_data_frac_mult, i);
         errorList = [errorList rec101(train_struct, classifiers{4}, feat_rep, 0, [])];
     end
     
     error = mean(errorList);
     errorVar = sqrt(var(errorList));
     
-    disp(['Pca dim: ', num2str(nn), ', error: ', num2str(error), 'var: ', num2str(errorVar)]);
+    disp(['Pca dim: ', num2str(i), ', error: ', num2str(error), 'var: ', num2str(errorVar)]);
     
     pcaErrorValues = [pcaErrorValues error];
     pcaErrorValuesVar = [pcaErrorValuesVar errorVar];
@@ -65,7 +66,6 @@ nnError2 = [];
 nnError3 = [];
 nnError4 = [];
 
-train_struct = getProcessedData(data, 'feat_direct', 0.25 * global_data_frac_mult, 22);
 
 
 sizes = 20;
@@ -85,6 +85,7 @@ for nnSize = 1:sizes
     
     for i=1:4
         for j=1:trials
+            train_struct = getProcessedData(data, 'feat_direct', 0.25 * global_data_frac_mult, 22);
              nnErrors(nnSize, i, j) = rec101(train_struct, nets{i}, feat_rep, 0, []);
         end
     end
@@ -127,10 +128,50 @@ legend('show');
 
 %plot(nnError4, 'Displayname', '4');
 
+%%
+labels = {'Neural Network', 'Decision Tree', 'SVM', 'Parzen', 'Fisher', 'Logistic classifier', 'LDC', 'QDC', 'NMC', 'Stacked max combination', 'Stacked min combination', 'Stacked mean combination'};
+
 
 %%
-%Measure cost curves for some interesting scenario.
 
+iter = 4;
+frac = [0.01, 0.02, 0.04, 0.05, 0.08, 0.1, 0.2, 0.4];
+
+err = zeros(length(frac), size(classifiers,1));
+err_var = zeros(length(frac), size(classifiers,1));
+
+for j = 1:length(frac)
+   
+    for k = 1:size(classifiers,1)
+        disp(labels(k));
+        errorList = [];
+        
+        for i = 1:iter
+            train_struct = getProcessedData(data, 'feat_direct', frac(j) * global_data_frac_mult, 24);
+            errorList = [errorList rec101(train_struct, classifiers{k}, 'feat_direct', 0, [])];
+        end
+        
+        err(j,k) = mean(errorList);
+        err_var(j,k) = sqrt(var(errorList));    
+    end
+end
+
+
+%%
+figure();
+for k = 1:9
+    errorbar(frac * 1000 * global_data_frac_mult, err(:,k), err_var(:,k), 'DisplayName', labels{k})
+    hold on;
+end
+legend('show')
+
+figure;
+for k = 10:12
+    errorbar(frac * 1000 * global_data_frac_mult, err(:,k), err_var(:,k), 'DisplayName', labels{k})
+    hold on;
+end
+
+legend('show')
 
 %%
 %total results
@@ -139,7 +180,7 @@ resultsHandwritten = zeros(2, 3, length(classifiers));
 
 for scenario = 1:2
     if scenario == 1
-        data_frac = 0.3;
+        data_frac = 0.5;
     else
         data_frac = 0.01 / global_data_frac_mult;
     end
@@ -154,11 +195,9 @@ for scenario = 1:2
                 feat_rep = 'f'; 
         end
 
-        train_struct = getProcessedData(data, feat_rep, data_frac * global_data_frac_mult, 22);
-   
         %TODO: We need to run this a few times to get an average. 
-        
         for cl = 1:length(classifiers)
+             train_struct = getProcessedData(data, feat_rep, data_frac * global_data_frac_mult, 22);
             [results(scenario, rep, cl), resultsHandwritten(scenario, rep, cl)] = rec101(train_struct, classifiers{cl}, feat_rep, 1, handwriteData); 
         end
     end
