@@ -10,4 +10,5 @@ function data = handwrittenPrnist()
     end
     
     data = setlabels(data, labelList, 1:300); 
+    data = setprior(data, []);
 end

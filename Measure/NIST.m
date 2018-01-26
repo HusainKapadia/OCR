@@ -5,15 +5,14 @@ prtime(600);
 data = prnist(0:9, 1:1000);
 handwriteData = handwrittenPrnist();
 
-%add scaled classifiers to classifiers list
-w = [bpxnc([], [40 30], 15000) *classc svc([], proxm('p',3)) *classc ];
-Cmax = w*maxc;            % max combiner
-Cmin = w*minc;            % min combiner
 
-classifiers = { perlc([]);
-                knnc([], 5); 
+%add scaled classifiers to classifiers list
+w = [bpxnc([], [30], 15000) *classc svc([], proxm('p',3)) *classc ];
+Cmean = w*meanc;            % max combiner
+Cprod = w*prodc;            % min combiner
+
+classifiers = { bpxnc([], [30], 15000);
                 treec([]);
-                bpxnc([], [30], 15000);
                 svc([], proxm('p',3));
                 parzenc([], 5);
                 fisherc;
@@ -22,10 +21,10 @@ classifiers = { perlc([]);
                 qdc([],.5,.5);
                 nmc;
                 Cmax;
-                Cmin;
+                Cprod;
                };
-           
-global_data_frac_mult = 0.01;
+
+global_data_frac_mult = 0.5;
 
  
 %%
@@ -66,7 +65,7 @@ nnError2 = [];
 nnError3 = [];
 nnError4 = [];
 
-train_struct = getProcessedData(data, 'feat_direct', 0.25 * global_data_frac_mult, 24);
+train_struct = getProcessedData(data, 'feat_direct', 0.25 * global_data_frac_mult, 22);
 
 
 sizes = 20;
@@ -140,9 +139,9 @@ resultsHandwritten = zeros(2, 3, length(classifiers));
 
 for scenario = 1:2
     if scenario == 1
-        data_frac = 0.2;
+        data_frac = 0.3;
     else
-        data_frac = 0.01;
+        data_frac = 0.01 / global_data_frac_mult;
     end
 
     for rep = 1:3
@@ -150,23 +149,17 @@ for scenario = 1:2
             case 1 
                 feat_rep = 'feat_direct';
             case 2 
-                feat_rep = 'feat_filter';
+                feat_rep = 'feat_all';
             case 3 
-                feat_rep = 'feat_all'; 
+                feat_rep = 'f'; 
         end
 
-        train_struct = getProcessedData(data, feat_rep, data_frac, 24);
-        train_struct_handwritten = getProcessedData(handwriteData, feat_rep, 0.99999, 24);
-
+        train_struct = getProcessedData(data, feat_rep, data_frac * global_data_frac_mult, 22);
+   
         %TODO: We need to run this a few times to get an average. 
         
         for cl = 1:length(classifiers)
-            
-            
-            [results(scenario, rep, cl), resultsHandwritten(scenario, rep, cl)] = rec101(train_struct, classifiers{cl}, feat_rep, 1, train_struct_handwritten); 
+            [results(scenario, rep, cl), resultsHandwritten(scenario, rep, cl)] = rec101(train_struct, classifiers{cl}, feat_rep, 1, handwriteData); 
         end
     end
 end
-
-
-
