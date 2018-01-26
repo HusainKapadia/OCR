@@ -13,7 +13,7 @@ Cmin = w*minc;            % min combiner
 classifiers = { perlc([]);
                 knnc([], 5); 
                 treec([]);
-                bpxnc([], [30], 15000);
+                bpxnc([], [40 30], 15000);
                 svc([], proxm('p',3));
                 parzenc([], 5);
                 fisherc;
