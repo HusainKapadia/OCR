@@ -8,7 +8,6 @@ function [performance, performanceHandwriting] = rec101(train_struct, classifier
     performance = nist_eval(feat_func, scaledW, 100);
     
     
-    fprintf("Classifier performance is %f \n", performance);
     performanceHandwriting = 0;
     
     if testHandwriting > 0
@@ -17,8 +16,5 @@ function [performance, performanceHandwriting] = rec101(train_struct, classifier
         handwriteData = f(handwriteRaw); 
         %TODO: Why is perf so terrible?
         [performanceHandwriting, digitPerf] = testd(handwriteData, scaledW);
-        
-        fprintf("Classifier performance (hand written) is %f \n", performanceHandwriting);
-    end
-    
+    end  
 end
