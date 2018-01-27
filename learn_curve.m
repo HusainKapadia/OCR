@@ -1,5 +1,10 @@
+prwaitbar off    
+prtime(600);
+    
 data = prnist(0:9, 1:1000);
+handwriteData = handwrittenPrnist();
 
+%add scaled classifiers to classifiers list
 w = [bpxnc([], [40 30], 15000) *classc svc([], proxm('p',3)) *classc ];
 Cmax = w*maxc;            % max combiner
 Cmin = w*minc;            % min combiner
@@ -35,16 +40,8 @@ for j = 1:length(frac)
         disp(labels(k));
         errorList = [];
         for i = 1:iter
-            A = gendat(data, frac(j));
-            pix = feat_direct(A);
-            map = proxm(pix,'d',2);
-
-            D = pix*map;
-            [pca_map, ~] = pcam(D, 24);
-            D = D*pca_map;
-            Z = D*classifiers{k};
-            
-            errorList = [errorList nist_eval('feat_direct', map*pca_map*Z, 100)];
+            train_struct = getProcessedData(data, 'feat_direct', frac(j), 24);
+            errorList = [errorList rec101(train_struct, classifiers{k}, 'feat_direct', 0, [])];
         end
         err(j,k) = mean(errorList);
         err_var(j,k) = sqrt(var(errorList));    
@@ -53,18 +50,29 @@ end
 
 figure();
 for k = 1:11
-    errorbar(10000*frac, err(:,k), err_var(:,k), 'DisplayName', labels{k})
+    errorbar(1000*frac, err(:,k), err_var(:,k), 'DisplayName', labels(k))
     hold on;
 end
-
 legend('show')
-
 figure();
-for k = 12:14
-    errorbar(10000*frac, err(:,k), err_var(:,k), 'DisplayName', labels{k})
+for k = 11:14
+    errorbar(1000*frac, err(:,k), err_var(:,k), 'DisplayName', labels(k))
     hold on;
 end
 
 legend('show')
 
-
+% lin_per_perf = 
+% knn_perf =
+% tree_perf = 
+% nn_perf = 
+% svc_perf = 
+% pz_perf =
+% fsh_perf =
+% log_perf = 
+% ldc_perf =
+% qdc_perf =
+% nmc_perf = 
+% Cmax_perf = 
+% Cmin_perf =
+% Cmean_perf = 
