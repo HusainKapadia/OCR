@@ -6,26 +6,21 @@ data = prnist(0:9, 1:1000);
 handwriteData = handwrittenPrnist();
 
 %add scaled classifiers to classifiers list
-w = [bpxnc([], [30], 15000) *classc svc([], proxm('p',3)) *classc ];
-Cmax = w*maxc;            % max combiner
-Cmin = w*minc;            % min combiner
+w = [bpxnc([], [30], 15000) *classc svc([], proxm('p')) *classc ];
 Cmean = w*meanc;          % mean combiner
 
 classifiers = { bpxnc([], [30], 15000);
                 treec([]);
-                svc([], proxm('p',3));
+                svc([], proxm('p'));
                 parzenc([], 5);
                 fisherc;
                 ldc([],.5,.5);
                 qdc([],.5,.5);
-                Cmax;
-                Cmin;
                 Cmean
                };
-labels = {'Neural Network', 'Decision Tree', 'SVM', 'Parzen', 'Fisher', 'Logistic classifier', 'LDC', 'QDC', 'NMC', 'Stacked max combination', 'Stacked min combination', 'Stacked mean combination'};
+labels = {'Neural Network', 'Decision Tree', 'SVM', 'Parzen', 'Fisher', 'LDC', 'QDC', 'Stacked mean combination'};
 
-
-global_data_frac_mult = 0.01;
+global_data_frac_mult = 0.5;
 bestPca = 22;
  
 %%
@@ -38,6 +33,7 @@ feat_rep = 'feat_direct';
 bestPca = 1;
 minPcaError = 10000;
 
+%%
 for i = 1:2:40
     errorList = [];
     
@@ -46,6 +42,8 @@ for i = 1:2:40
         errorList = [errorList rec101(train_struct, classifiers{1}, feat_rep, 0, [])];
     end
     
+    disp(['Pca dim: ', num2str(i), ', error: ', num2str(error), ' var: ', num2str(errorVar)]);
+    
     error = mean(errorList);
     errorVar = sqrt(var(errorList));
     
@@ -53,9 +51,7 @@ for i = 1:2:40
        bestPca = i;
        minPcaError = error; 
     end
-    
-    disp(['Pca dim: ', num2str(i), ', error: ', num2str(error), 'var: ', num2str(errorVar)]);
-    
+        
     pcaErrorValues = [pcaErrorValues error];
     pcaErrorValuesVar = [pcaErrorValuesVar errorVar];
 end
@@ -69,35 +65,35 @@ errorbar(pcaErrorValues, pcaErrorValuesVar);
 %discard those?
 %TODO: Auto plug best neural network
 % gest best NN dimension
-nnError1 = [];
-nnError2 = [];
-nnError3 = [];
-nnError4 = [];
-
-sizes = 20;
-trials = 5;
-nnErrors = zeros(sizes, 4, 5);
-
-for nnSize = 1:sizes
-    mult = nnSize / (sizes - 1) * 3.75 + 0.25;
-
-    nets = [
-            bpxnc([], round([10 5 10] * mult), 15000);
-            bpxnc([], round([10] * mult), 15000);
-            bpxnc([], round([5 10 5] * mult), 15000);
-            bpxnc([], round([10 10] * mult), 15000)
-            
-            ];
-    
-    for i=1:4
-        for j=1:trials
-            train_struct = getProcessedData(data, 'feat_direct', 0.25 * global_data_frac_mult, bestPca);
-            nnErrors(nnSize, i, j) = rec101(train_struct, nets{i}, feat_rep, 0, []);
-        end
-    end
-    
-    disp(['NN round ', num2str(nnSize), ' done']); 
-end
+% nnError1 = [];
+% nnError2 = [];
+% nnError3 = [];
+% nnError4 = [];
+% 
+% sizes = 20;
+% trials = 5;
+% nnErrors = zeros(sizes, 4, 5);
+% 
+% for nnSize = 1:sizes
+%     mult = nnSize / (sizes - 1) * 3.75 + 0.25;
+% 
+%     nets = [
+%             bpxnc([], round([10 5 10] * mult), 15000);
+%             bpxnc([], round([10] * mult), 15000);
+%             bpxnc([], round([5 10 5] * mult), 15000);
+%             bpxnc([], round([10 10] * mult), 15000)
+%             
+%             ];
+%     
+%     for i=1:4
+%         for j=1:trials
+%             train_struct = getProcessedData(data, 'feat_direct', 0.25 * global_data_frac_mult, bestPca);
+%             nnErrors(nnSize, i, j) = rec101(train_struct, nets{i}, feat_rep, 0, []);
+%         end
+%     end
+%     
+%     disp(['NN round ', num2str(nnSize), ' done']); 
+% end
 
 %%
 errorMean = zeros(4, sizes);
@@ -138,16 +134,18 @@ legend('show');
 
 
 %%
-frac = [0.01, 0.015, 0.03, 0.04, 0.06, 0.08, 0.1, 0.2, 0.4];
+frac = [0.01, 0.015, 0.03, 0.04, 0.06, 0.08, 0.1, 0.2];
 
 err = zeros(length(frac), size(classifiers,1));
 err_var = zeros(length(frac), size(classifiers,1));
 
+%%
+%TODO: COmbined is not done yet....
 for k = 1:size(classifiers,1)
     for j = 1:length(frac)
         errorList = [];
         
-        for i = 1:4
+        for i = 1:3
             train_struct = getProcessedData(data, 'feat_direct', frac(j) * global_data_frac_mult, bestPca);
             errorList = [errorList rec101(train_struct, classifiers{k}, 'feat_direct', 0, [])];
         end
@@ -180,7 +178,7 @@ resultsHandwrittenVar = zeros(2, 3, length(classifiers));
 %%
 for scenario = 1:2
     if scenario == 1
-        data_frac = 0.5;
+        data_frac = 0.999;
     else
         data_frac = 0.01 / global_data_frac_mult;
     end
@@ -196,11 +194,11 @@ for scenario = 1:2
                 feat_rep = 'feat_diss'; 
         end
         
-        for cl = 1:length(classifiers)
+        for cl = 3:length(classifiers)
             err = [];
             errHandwritten = [];
             
-            for r=1:4
+            for r=1:3
                 train_struct = getProcessedData(data, feat_rep, data_frac * global_data_frac_mult, bestPca);
                 
                 [ec, ech] = rec101(train_struct, classifiers{cl}, feat_rep, 1, handwriteData); 
