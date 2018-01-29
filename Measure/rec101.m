@@ -1,7 +1,7 @@
 function [performance, performanceHandwriting] = rec101(train_struct, classifier, feat_func, testHandwriting, handwriteRaw)
 
     w = train_struct.data * classifier;
-    scaledW = train_struct.scale * train_struct.pca * w;   
+    scaledW = train_struct.map * w;   
     %scaledW = train_struct.pca * w;
     %scaledW = train_struct.scale * w;
     
