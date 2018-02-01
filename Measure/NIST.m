@@ -42,11 +42,11 @@ for i = 1:2:40
         errorList = [errorList rec101(train_struct, classifiers{1}, feat_rep, 0, [])];
     end
     
-    disp(['Pca dim: ', num2str(i), ', error: ', num2str(error), ' var: ', num2str(errorVar)]);
-    
     error = mean(errorList);
     errorVar = sqrt(var(errorList));
     
+    disp(['Pca dim: ', num2str(i), ', error: ', num2str(error), ' var: ', num2str(errorVar)]);
+   
     if error < minPcaError
        bestPca = i;
        minPcaError = error; 
@@ -60,40 +60,40 @@ end
 errorbar(pcaErrorValues, pcaErrorValuesVar);
 
 %%
-%Neural net stuff
-%TODO: NN can get stuck, and produce a classifier with error >0.9. Do we
-%discard those?
-%TODO: Auto plug best neural network
+% Neural net stuff
+% TODO: NN can get stuck, and produce a classifier with error >0.9. Do we
+% discard those?
+% TODO: Auto plug best neural network
 % gest best NN dimension
-% nnError1 = [];
-% nnError2 = [];
-% nnError3 = [];
-% nnError4 = [];
-% 
-% sizes = 20;
-% trials = 5;
-% nnErrors = zeros(sizes, 4, 5);
-% 
-% for nnSize = 1:sizes
-%     mult = nnSize / (sizes - 1) * 3.75 + 0.25;
-% 
-%     nets = [
-%             bpxnc([], round([10 5 10] * mult), 15000);
-%             bpxnc([], round([10] * mult), 15000);
-%             bpxnc([], round([5 10 5] * mult), 15000);
-%             bpxnc([], round([10 10] * mult), 15000)
-%             
-%             ];
-%     
-%     for i=1:4
-%         for j=1:trials
-%             train_struct = getProcessedData(data, 'feat_direct', 0.25 * global_data_frac_mult, bestPca);
-%             nnErrors(nnSize, i, j) = rec101(train_struct, nets{i}, feat_rep, 0, []);
-%         end
-%     end
-%     
-%     disp(['NN round ', num2str(nnSize), ' done']); 
-% end
+nnError1 = [];
+nnError2 = [];
+nnError3 = [];
+nnError4 = [];
+
+sizes = 20;
+trials = 5;
+nnErrors = zeros(sizes, 4, 5);
+
+for nnSize = 1:sizes
+    mult = nnSize / (sizes - 1) * 3.75 + 0.25;
+
+    nets = [
+            bpxnc([], round([10 5 10] * mult), 15000);
+            bpxnc([], round([10] * mult), 15000);
+            bpxnc([], round([5 10 5] * mult), 15000);
+            bpxnc([], round([10 10] * mult), 15000)
+            
+            ];
+    
+    for i=1:4
+        for j=1:trials
+            train_struct = getProcessedData(data, 'feat_direct', 0.25 * global_data_frac_mult, bestPca);
+            nnErrors(nnSize, i, j) = rec101(train_struct, nets{i}, feat_rep, 0, []);
+        end
+    end
+    
+    disp(['NN round ', num2str(nnSize), ' done']); 
+end
 
 %%
 errorMean = zeros(4, sizes);
@@ -134,26 +134,28 @@ legend('show');
 
 
 %%
-frac = [0.01, 0.015, 0.03, 0.04, 0.06, 0.08, 0.1, 0.2];
+frac = [0.01, 0.015, 0.03, 0.04, 0.06, 0.08, 0.1, 0.2, 0.4];
 
-err = zeros(length(frac), size(classifiers,1));
-err_var = zeros(length(frac), size(classifiers,1));
+learnCurveErr = zeros(length(frac), size(classifiers,1));
+learnCurveErrVar = zeros(length(frac), size(classifiers,1));
 
 %%
 %TODO: COmbined is not done yet....
-for k = 1:size(classifiers,1)
+for k = 1:length(classifiers)
     for j = 1:length(frac)
         errorList = [];
         
         for i = 1:3
             train_struct = getProcessedData(data, 'feat_direct', frac(j) * global_data_frac_mult, bestPca);
-            errorList = [errorList rec101(train_struct, classifiers{k}, 'feat_direct', 0, [])];
+            
+            [e, eh] = rec101(train_struct, classifiers{k}, 'feat_direct', 0, []);
+            errorList = [errorList e];
         end
         
-        err(j,k) = mean(errorList);
-        err_var(j,k) = std(errorList); 
+        learnCurveErr(j,k) = mean(errorList);
+        learnCurveErrVar(j,k) = std(errorList); 
         
-        disp(['Round done: ', labels{k}, ', ', num2str(j), ' -> ', num2str(mean(errorList)), ' +- ', num2str(std(errorList))]);
+        disp(['Round done: ', labels{k}, ', ', num2str(frac(j)), ' -> ', num2str(mean(errorList)), ' +- ', num2str(std(errorList))]);
     end
 end
 
@@ -161,7 +163,7 @@ end
 %%
 figure();
 for k = 1:length(classifiers)
-    errorbar(frac * 1000 * global_data_frac_mult, err(:,k), err_var(:,k), 'DisplayName', labels{k})
+    errorbar(frac * 1000, learnCurveErr(:,k), learnCurveErrVar(:,k), 'DisplayName', labels{k})
     hold on;
 end
 legend('show')
@@ -178,28 +180,27 @@ resultsHandwrittenVar = zeros(2, 3, length(classifiers));
 %%
 for scenario = 1:2
     if scenario == 1
-        data_frac = 0.999;
+        data_frac = 0.9;
     else
         data_frac = 0.01 / global_data_frac_mult;
     end
-
-    %Rep 3: TODO
-    for rep = 1:2
+    
+    for rep = 1:3
         switch rep
             case 1 
                 feat_rep = 'feat_direct';
             case 2 
                 feat_rep = 'feat_all';
             case 3 
-                feat_rep = 'feat_diss'; 
+                feat_rep = 'feat_direct'; 
         end
         
-        for cl = 3:length(classifiers)
+        for cl = 1:length(classifiers)
             err = [];
             errHandwritten = [];
             
             for r=1:3
-                train_struct = getProcessedData(data, feat_rep, data_frac * global_data_frac_mult, bestPca);
+                train_struct = getProcessedData(data, feat_rep, data_frac * global_data_frac_mult, bestPca, rep == 3);
                 
                 [ec, ech] = rec101(train_struct, classifiers{cl}, feat_rep, 1, handwriteData); 
                 
