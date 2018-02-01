@@ -26,7 +26,7 @@ classifiers = { perlc([]);
                 Cmean;
                };
 
-labels = ['Linear Perceptron', '5-nn', 'Decision Tree', 'Neural Network', 'SVM', 'Parzen', 'Fisher', 'Logistic classifier', 'LDC', 'QDC', 'NMC', 'Stacked max combination', 'Stacked min combination', 'Stacked mean combination'];
+labels = {'Linear Perceptron', '5-nn', 'Decision Tree', 'Neural Network', 'SVM', 'Parzen', 'Fisher', 'Logistic classifier', 'LDC', 'QDC', 'NMC', 'Stacked max combination', 'Stacked min combination', 'Stacked mean combination'};
        
 iter = 4;
 frac = [0.01, 0.02, 0.04, 0.05, 0.08, 0.1, 0.2];
@@ -36,47 +36,29 @@ err = zeros(length(frac), size(classifiers,1));
 err_var = zeros(length(frac), size(classifiers,1));
 
 for j = 1:length(frac)
-    train_struct = getProcessedData(data, 'feat_direct', frac(j), 24);    
-    err_cl = [];
-    errVar_cl = [];
     for k = 1:size(classifiers,1)
         disp(labels(k));
         errorList = [];
         for i = 1:iter
-            errorList = [errorList rec101(train_struct, classifiers{k}, 'feat_direct', 0, [])];
+            train_struct = getProcessedData(data, 'feat_all', frac(j), 24);
+            errorList = [errorList rec101(train_struct, classifiers{k}, 'feat_a', 0, [])];
         end
-        err_cl = [err_cl mean(errorList)];
-        errVar_cl = [errVar_cl sqrt(var(errorList))];    
+        err(j,k) = mean(errorList);
+        err_var(j,k) = sqrt(var(errorList));    
     end
-    err(j) = error;
-    err_var(j) = errorVar;
 end
 
 figure();
 for k = 1:11
-    errorbar(err, err_var, 'DisplayName', labels(k))
+    errorbar(1000*frac, err(:,k), err_var(:,k), 'DisplayName', labels(k))
     hold on;
 end
-
+legend('show')
 figure();
-for k = 11:14
-    errorbar(err, err_var, 'DisplayName', labels(k))
+for k = 12:14
+    errorbar(1000*frac, err(:,k), err_var(:,k), 'DisplayName', labels(k))
     hold on;
 end
 
 legend('show')
-
-% lin_per_perf = 
-% knn_perf =
-% tree_perf = 
-% nn_perf = 
-% svc_perf = 
-% pz_perf =
-% fsh_perf =
-% log_perf = 
-% ldc_perf =
-% qdc_perf =
-% nmc_perf = 
-% Cmax_perf = 
-% Cmin_perf =
-% Cmean_perf = 
+ 
