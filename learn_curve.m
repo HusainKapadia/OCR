@@ -10,54 +10,46 @@ Cmax = w*maxc;            % max combiner
 Cmin = w*minc;            % min combiner
 Cmean = w*meanc;          % mean combiner
 
-classifiers = { %perlc([]);
-                %knnc([], 5); 
+classifiers = { knnc([], 5); 
                 treec([]);
                 bpxnc([], [30], 15000);
                 svc([], proxm('p',3));
                 parzenc([], 5);
                 fisherc;
-                %loglc;
                 ldc([],.5,.5);
                 qdc([],.5,.5);
-                %nmc;
-                %Cmax;
-                %Cmin;
                 Cmean;
                };
 
-labels = {'Decision Tree', 'Neural Network', 'SVM', 'Parzen', 'Fisher', 'LDC', 'QDC', 'Stacked mean combination'};
+labels = {'K=NN', 'Decision Tree', 'Neural Network', 'SVM', 'Parzen', 'Fisher', 'LDC', 'QDC', 'Stacked mean combination'};
        
 iter = 4;
-frac = [0.01, 0.02, 0.04, 0.05, 0.08, 0.1, 0.2, .4];
-%errors = zeros(size(classifiers,1),length(frac),iter);
+frac = [0.01, 0.015, 0.03, 0.04, 0.06, 0.08, 0.1, 0.2, 0.4];
 
 err = zeros(length(frac), size(classifiers,1));
-err_var = zeros(length(frac), size(classifiers,1));
+%err_var = zeros(length(frac), size(classifiers,1));
 
 for j = 1:length(frac)
     for k = 1:size(classifiers,1)
         disp(labels(k));
         disp(j)
-        errorList = [];
-        for i = 1:iter
-            train_struct = getProcessedData(data, 'feat_all', frac(j), 15);
-            errorList = [errorList rec101(train_struct, classifiers{k}, 'feat_all', 0, [])];
-        end
-        err(j,k) = mean(errorList);
-        err_var(j,k) = sqrt(var(errorList));    
+        %errorList = [];
+        %for i = 1:iter
+            train_struct = getProcessedData(data, 'feat_direct', frac(j), 30, 1);
+            %errorList = [errorList rec101(train_struct, classifiers{k}, 'feat_proxm', 0, [])];
+        %end
+        err(j,k) = rec101(train_struct, classifiers{k}, 'feat_direct', 0, []);%mean(errorList);
+        %err_var(j,k) = sqrt(var(errorList));    
     end
 end
 
 figure();
 for k = 1:size(classifiers,1)
-    errorbar(1000*frac, err(:,k), err_var(:,k), 'DisplayName', labels{k})
+    plot(1000*frac, err(:,k), 'DisplayName', labels{k})
     hold on;
 end
 xlabel('Training Size per class')
 ylabel('Test Error')
-title('Trained on features')
-legend('show')
-figure();
+title('Trained on Dissimilarities')
 legend('show')
  
